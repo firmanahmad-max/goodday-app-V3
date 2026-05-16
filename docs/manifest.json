@@ -2,7 +2,8 @@
   "name": "GoodDay — Motivasi Islami Harian",
   "short_name": "GoodDay",
   "description": "Pesan motivasi harian dari Al-Quran dan Hadits, dipersonalisasi untukmu",
-  "start_url": "/goodday-app/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#1a0a2e",
   "theme_color": "#1a0a2e",
@@ -12,7 +13,7 @@
     { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23c9a96e' width='192' height='192'/><path d='M96 32L108 80H160L120 104L132 152L96 128L60 152L72 104L32 80H84L96 32Z' fill='white' opacity='0.92'/></svg>", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" }
   ],
   "shortcuts": [
-    { "name": "Pesan Pagi", "url": "/goodday-app/?waktu=morning", "description": "Motivasi untuk pagi hari" },
-    { "name": "Pesan Malam", "url": "/goodday-app/?waktu=evening", "description": "Refleksi menjelang malam" }
+    { "name": "Pesan Pagi", "url": "./?waktu=morning", "description": "Motivasi untuk pagi hari" },
+    { "name": "Pesan Malam", "url": "./?waktu=evening", "description": "Refleksi menjelang malam" }
   ]
 }

@@ -48,30 +48,48 @@ const server = http.createServer(async (req, res) => {
           body: data
         };
 
-        // Mock res object
+        // Vercel-compatible response shim. The handler in api/motivasi.js
+        // uses res.status(X).json({...}) and expects the response to be sent
+        // immediately — without this, the connection hangs until the client
+        // gives up (the source of the 120s frontend timeouts).
         let statusCode = 200;
-        const responseData = {};
+        let sent = false;
         const resProxy = {
           status: (code) => {
             statusCode = code;
             return resProxy;
           },
           json: (data) => {
-            Object.assign(responseData, data);
+            if (sent) return resProxy;
+            sent = true;
+            if (!res.headersSent) {
+              res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+            }
+            res.end(JSON.stringify(data));
             return resProxy;
           },
           setHeader: (key, value) => {
-            res.setHeader(key, value);
+            if (!res.headersSent) res.setHeader(key, value);
             return resProxy;
           },
           end: () => {
-            res.writeHead(statusCode, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(responseData));
+            if (sent) return;
+            sent = true;
+            if (!res.headersSent) res.writeHead(statusCode);
+            res.end();
           }
         };
 
         // Call handler
         await handler(mockReq, resProxy);
+
+        // Safety net: if the handler returned without sending a response,
+        // close the connection cleanly rather than letting it hang.
+        if (!sent) {
+          console.error('[GoodDay Server] Handler returned without sending response');
+          if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Handler did not send response' }));
+        }
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Server error: ' + err.message }));
