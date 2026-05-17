@@ -284,11 +284,11 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 <script>
 // Configuration - SESUAIKAN DENGAN API_URL KAMU
 const API_URL = 'https://goodday-app-v3-production.up.railway.app/api/motivasi';
-const MOODS=[['😌','bersemangat'],['😔','sedih'],['😰','cemas'],['😤','kesal'],['🥰','berbahagia']];
+const MOODS=[['😌','bersemangat'],['🥰','berbahagia'],['😊','bersyukur'],['😇','tenang'],['💪','optimis'],['😔','sedih'],['😰','cemas'],['😤','kesal'],['😢','kecewa'],['😴','lelah'],['😕','bingung'],['😨','takut'],['🤲','berharap'],['🥺','rindu'],['😶','hampa']];
 const SLOTS={fajr:{i:'🌙',l:'Subuh / Dini Hari',g:'Selamat datang di awal hari'},morning:{i:'🌅',l:'Pagi',g:'Selamat pagi'},noon:{i:'☀️',l:'Siang',g:'Siang hari ini'},evening:{i:'🌆',l:'Malam',g:'Selamat malam'}};
 
 let user=null;
-let mood='bersemangat';
+let mood=null;
 let hist=[];
 let msgs=0;
 let busy=false;
@@ -339,19 +339,21 @@ function initMain(){
   document.getElementById('gsub').textContent=inf.g+',';
   document.getElementById('gname').textContent=user.name+' 👋';
   document.getElementById('ava').textContent=user.name[0].toUpperCase();
-  buildMoods();getMotiv();
+  buildMoods();
+  showMoodPrompt();
+}
+
+function showMoodPrompt(){
+  document.getElementById('marea').innerHTML='<div class="ldwrap"><div class="ldtxt">👆 Pilih mood kamu dulu untuk menampilkan motivasi.</div></div>';
 }
 
 function buildMoods(){
   const r=document.getElementById('mrow');r.innerHTML='';
-  const defaultMood='bersemangat';
   MOODS.forEach(([e,l])=>{
     const b=document.createElement('button');
-    const isDefault=(l===defaultMood);
     const isSelected=(l===mood);
-    b.className='mchip'+(isSelected?' on':'')+(isDefault?' data-default':'');
+    b.className='mchip'+(isSelected?' on':'');
     b.setAttribute('data-mood', l);
-    if(isDefault) b.title='Default mood (pilih mood lain jika berbeda)';
     b.textContent=e+' '+l;
     b.onclick=()=>{
       mood=l;
@@ -361,16 +363,12 @@ function buildMoods(){
     };
     r.appendChild(b);
   });
-  // Highlight default mood pada load pertama
-  if(!document.querySelector('.mchip.on')){
-    const defaultBtn=document.querySelector('[data-mood="'+defaultMood+'"]');
-    if(defaultBtn) defaultBtn.classList.add('on');
-  }
 }
 
 // FIX #3: FETCH DENGAN TIMEOUT & BETTER ERROR MESSAGES
 async function getMotiv(){
   if(busy)return;
+  if(!mood){showMoodPrompt();return;}
   busy=true;
   const btn=document.getElementById('btnr');
   btn.disabled=true;
@@ -448,8 +446,9 @@ async function getMotiv(){
 }
 
 function renderMotiv(d){
-  const ar=document.getElementById('tog-ar')?.classList.contains('on')!==false;
-  document.getElementById('marea').innerHTML=`<div class="qcard"><div class="qbadge">${d.type==='quran'?'📖 Al-Quran':'📿 Hadits'}</div>${ar?`<div class="arabic">${d.arabic}</div>`:''}  <div class="trans">"${d.translation}"</div><div class="src">— ${d.source}</div></div><div class="narr"><div class="narr-t">${d.narrative}</div></div>`;
+  const togAr=document.getElementById('tog-ar');
+  const ar=togAr?togAr.checked:true;
+  document.getElementById('marea').innerHTML=`<div class="qcard"><div class="qbadge">${d.type==='quran'?'📖 Al-Quran':'📿 Hadits'}</div>${ar&&d.arabic?`<div class="arabic">${d.arabic}</div>`:''}  <div class="trans">"${d.translation}"</div><div class="src">— ${d.source}</div></div><div class="narr"><div class="narr-t">${d.narrative}</div></div>`;
 }
 function saveHist(d){
   const s=slot(),lbl={fajr:'Subuh',morning:'Pagi',noon:'Siang',evening:'Malam'};
