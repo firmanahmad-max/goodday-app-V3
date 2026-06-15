@@ -1,5 +1,5 @@
-const CACHE = 'goodday-v3.9';
-const ASSETS = ['./', './index.html', './manifest.json'];
+const CACHE = 'goodday-v3.10';
+const ASSETS = ['./', './index.html', './manifest.json', './splash.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));

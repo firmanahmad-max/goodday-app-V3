@@ -5,12 +5,23 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#1a0a2e",
-  "theme_color": "#1a0a2e",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
   "orientation": "portrait-primary",
   "lang": "id",
   "icons": [
-    { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23c9a96e' width='192' height='192'/><path d='M96 32L108 80H160L120 104L132 152L96 128L60 152L72 104L32 80H84L96 32Z' fill='white' opacity='0.92'/></svg>", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><defs><linearGradient id='bg' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%231a2138'/><stop offset='1' stop-color='%230d1117'/></linearGradient><mask id='c'><rect width='192' height='192' fill='white'/><circle cx='112' cy='80' r='36' fill='black'/></mask></defs><rect width='192' height='192' rx='40' fill='url(%23bg)'/><circle cx='96' cy='96' r='42' fill='%23e8c98a' mask='url(%23c)'/><polygon points='0,-10 2.93,-3.09 9.51,-3.09 4.05,1.18 5.88,7.81 0,4 -5.88,7.81 -4.05,1.18 -9.51,-3.09 -2.93,-3.09' fill='%23e8c98a' transform='translate(140 58)'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "splash.png",
+      "sizes": "853x1844",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ],
   "shortcuts": [
     { "name": "Pesan Pagi", "url": "./?waktu=morning", "description": "Motivasi untuk pagi hari" },
