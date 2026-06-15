@@ -108,7 +108,9 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 .btn-r{width:100%;padding:13px;background:linear-gradient(135deg,#c9a96e,#e8c98a);border:none;border-radius:14px;color:#1a0a2e;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,opacity .2s;box-shadow:0 4px 16px rgba(201,169,110,.3)}
 .btn-r:hover{transform:translateY(-1px);opacity:.95}.btn-r:active{transform:translateY(0)}.btn-r:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .errmsg{font-size:.76rem;color:#cc3333;text-align:center;margin-top:.45rem;padding:.45rem;background:rgba(200,0,0,.04);border-radius:8px;display:none}
+.share-row{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-top:.75rem}
 .btn-share{width:100%;margin-top:.75rem;padding:11px;background:transparent;border:1.5px solid rgba(201,169,110,.45);border-radius:13px;color:#7a5810;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .15s,border-color .15s}
+.share-row .btn-share{margin-top:0}
 .btn-share:hover{background:rgba(201,169,110,.08);border-color:#c9a96e}
 .btn-share:active{transform:translateY(1px)}
 .dk .btn-share{color:#e8c98a;border-color:rgba(201,169,110,.4)}
@@ -134,6 +136,8 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 .htxt{font-size:.83rem;line-height:1.6;color:#334455;margin-bottom:.5rem}
 .hmeta{display:flex;gap:.5rem;flex-wrap:wrap}
 .htag{display:inline-block;background:rgba(201,169,110,.1);color:#7a5810;padding:3px 8px;border-radius:6px;font-size:.68rem;font-weight:500}
+.hshare{margin-left:auto;background:none;border:none;color:#c9a96e;cursor:pointer;padding:3px 8px;border-radius:6px;font-size:.78rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;font-family:'DM Sans',sans-serif;transition:background .15s}
+.hshare:hover{background:rgba(201,169,110,.12)}
 .empty{text-align:center;padding:3rem 1.5rem;color:#99aabb}
 .e-ico{font-size:3rem;margin-bottom:1rem}
 .e-txt{font-size:.9rem;line-height:1.6}
@@ -275,6 +279,10 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
       <div class="stat-num" id="sts">0</div>
       <div class="stat-lbl">Konsistensi</div>
     </div>
+    <div class="stat">
+      <div class="stat-num" id="ssh">0</div>
+      <div class="stat-lbl">Dibagikan</div>
+    </div>
   </div>
   <button class="btn-reset" onclick="resetApp()">🔄 Reset Data & Profil</button>
 </div>
@@ -373,6 +381,7 @@ let user=null;
 let mood=null;
 let hist=[];
 let msgs=0;
+let shares=0;
 let busy=false;
 let lastMotiv=null;
 let toastTid=null;
@@ -391,21 +400,20 @@ function showToast(msg){
 function buildShareText(d){
   const lines=[];
   if(d.arabic)lines.push(d.arabic);
-  lines.push(`"${d.translation}"`);
-  lines.push(`— ${d.source}`);
-  lines.push('');
-  lines.push(d.narrative);
+  if(d.translation)lines.push(`"${d.translation}"`);
+  if(d.source)lines.push(`— ${d.source}`);
+  if(d.narrative){lines.push('');lines.push(d.narrative);}
   lines.push('');
   lines.push('🌙 GoodDay — Motivasi Islami Harian');
   return lines.join('\n');
 }
 
-async function shareMotiv(){
-  if(!lastMotiv)return;
-  const text=buildShareText(lastMotiv);
+async function shareText(payload){
+  const text=buildShareText(payload);
   if(navigator.share){
     try{
       await navigator.share({title:'GoodDay — Motivasi Harian',text});
+      bumpShareCount();
       return;
     }catch(e){
       if(e.name==='AbortError')return;
@@ -415,9 +423,139 @@ async function shareMotiv(){
   try{
     await navigator.clipboard.writeText(text);
     showToast('✓ Tersalin ke clipboard');
+    bumpShareCount();
   }catch(e){
     console.error('[GoodDay] clipboard failed:',e);
     showToast('Gagal menyalin, coba lagi');
+  }
+}
+
+async function shareMotiv(){
+  if(!lastMotiv)return;
+  await shareText(lastMotiv);
+}
+
+async function shareFromHist(idx){
+  const h=hist[idx];
+  if(!h)return;
+  await shareText({arabic:h.arabic,translation:h.translation,source:h.source,narrative:h.text});
+}
+
+function wrapText(ctx,text,x,y,maxWidth,lineHeight){
+  const words=String(text||'').split(/\s+/).filter(Boolean);
+  if(!words.length)return y;
+  let line='';
+  for(const w of words){
+    const test=line?line+' '+w:w;
+    if(ctx.measureText(test).width>maxWidth&&line){
+      ctx.fillText(line,x,y);
+      line=w;
+      y+=lineHeight;
+    }else{
+      line=test;
+    }
+  }
+  if(line){ctx.fillText(line,x,y);y+=lineHeight;}
+  return y;
+}
+
+async function buildShareImage(d){
+  try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(_){}
+  const W=1080,H=1920;
+  const c=document.createElement('canvas');
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#1a0a2e');grad.addColorStop(.5,'#2d1b5e');grad.addColorStop(1,'#0d2440');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+
+  ctx.fillStyle='rgba(255,255,255,.55)';
+  for(let i=0;i<70;i++){
+    const sx=Math.random()*W,sy=Math.random()*H*.45,sr=Math.random()*2.2+.4;
+    ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fill();
+  }
+
+  ctx.textAlign='center';
+  ctx.fillStyle='#c9a96e';
+  ctx.font='700 76px "Playfair Display", Georgia, serif';
+  ctx.fillText('GoodDay',W/2,210);
+  ctx.fillStyle='rgba(196,181,244,.78)';
+  ctx.font='400 32px "DM Sans", system-ui, sans-serif';
+  ctx.fillText('Motivasi Islami Harian',W/2,260);
+
+  ctx.fillStyle='#e8c98a';
+  ctx.font='500 36px "DM Sans", system-ui, sans-serif';
+  ctx.fillText(d.type==='quran'?'📖 Al-Quran':'📿 Hadits',W/2,360);
+
+  let y=470;
+  const pad=140,maxW=W-pad*2;
+
+  if(d.arabic){
+    ctx.fillStyle='#e8c98a';
+    ctx.font='600 58px "Amiri", "Scheherazade", serif';
+    try{ctx.direction='rtl';}catch(_){}
+    ctx.textAlign='center';
+    y=wrapText(ctx,d.arabic,W/2,y,maxW,84);
+    try{ctx.direction='ltr';}catch(_){}
+    y+=40;
+  }
+
+  if(d.translation){
+    ctx.fillStyle='#f5f0ff';
+    ctx.font='italic 400 38px "DM Sans", system-ui, sans-serif';
+    y=wrapText(ctx,`"${d.translation}"`,W/2,y,maxW,58);
+    y+=30;
+  }
+
+  if(d.source){
+    ctx.fillStyle='#c9a96e';
+    ctx.font='500 30px "DM Sans", system-ui, sans-serif';
+    ctx.fillText(`— ${d.source}`,W/2,y);
+    y+=90;
+  }
+
+  if(d.narrative){
+    ctx.fillStyle='#c4b5f4';
+    ctx.font='400 34px "DM Sans", system-ui, sans-serif';
+    y=wrapText(ctx,d.narrative,W/2,y,maxW,52);
+  }
+
+  ctx.fillStyle='rgba(255,255,255,.45)';
+  ctx.font='500 26px "DM Sans", system-ui, sans-serif';
+  ctx.fillText('🌙 GoodDay PWA',W/2,H-110);
+
+  return new Promise((resolve,reject)=>{
+    c.toBlob(b=>b?resolve(b):reject(new Error('blob failed')),'image/png');
+  });
+}
+
+async function shareMotivImage(){
+  if(!lastMotiv)return;
+  showToast('Membuat gambar...');
+  try{
+    const blob=await buildShareImage(lastMotiv);
+    const file=new File([blob],'goodday-quote.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file],title:'GoodDay'});
+        bumpShareCount();
+        return;
+      }catch(e){
+        if(e.name==='AbortError')return;
+        console.warn('[GoodDay] share image fallback to download:',e);
+      }
+    }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='goodday-quote.png';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    showToast('✓ Gambar diunduh');
+    bumpShareCount();
+  }catch(e){
+    console.error('[GoodDay] image share failed:',e);
+    showToast('Gagal membuat gambar');
   }
 }
 
@@ -429,8 +567,14 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(!user.joined){user.joined=new Date().toISOString();localStorage.setItem('gd_u',JSON.stringify(user));}
     hist=JSON.parse(localStorage.getItem('gd_h')||'[]');
     msgs=+localStorage.getItem('gd_m')||0;
+    shares=+localStorage.getItem('gd_s')||0;
   }
 });
+
+function bumpShareCount(){
+  shares++;
+  localStorage.setItem('gd_s',shares);
+}
 
 function slot(){const h=new Date().getHours();return h>=4&&h<7?'fajr':h>=7&&h<12?'morning':h>=12&&h<17?'noon':'evening'}
 
@@ -584,11 +728,11 @@ function renderMotiv(d){
   lastMotiv=d;
   const togAr=document.getElementById('tog-ar');
   const ar=togAr?togAr.checked:true;
-  document.getElementById('marea').innerHTML=`<div class="qcard"><div class="qbadge">${d.type==='quran'?'📖 Al-Quran':'📿 Hadits'}</div>${ar&&d.arabic?`<div class="arabic">${esc(d.arabic)}</div>`:''}  <div class="trans">"${esc(d.translation)}"</div><div class="src">— ${esc(d.source)}</div></div><div class="narr"><div class="narr-t">${esc(d.narrative)}</div></div><button class="btn-share" type="button" onclick="shareMotiv()" aria-label="Bagikan motivasi ini"><span>📤</span><span>Bagikan</span></button>`;
+  document.getElementById('marea').innerHTML=`<div class="qcard"><div class="qbadge">${d.type==='quran'?'📖 Al-Quran':'📿 Hadits'}</div>${ar&&d.arabic?`<div class="arabic">${esc(d.arabic)}</div>`:''}  <div class="trans">"${esc(d.translation)}"</div><div class="src">— ${esc(d.source)}</div></div><div class="narr"><div class="narr-t">${esc(d.narrative)}</div></div><div class="share-row"><button class="btn-share" type="button" onclick="shareMotiv()" aria-label="Bagikan sebagai teks"><span>📤</span><span>Teks</span></button><button class="btn-share" type="button" onclick="shareMotivImage()" aria-label="Bagikan sebagai gambar"><span>🖼️</span><span>Gambar</span></button></div>`;
 }
 function saveHist(d){
   const s=slot(),lbl={fajr:'Subuh',morning:'Pagi',noon:'Siang',evening:'Malam'};
-  hist.unshift({time:lbl[s]+' · '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}),text:d.narrative,mood,source:d.source,type:d.type});
+  hist.unshift({time:lbl[s]+' · '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}),text:d.narrative,mood,source:d.source,type:d.type,arabic:d.arabic||'',translation:d.translation||''});
   if(hist.length>50)hist=hist.slice(0,50);
   localStorage.setItem('gd_h',JSON.stringify(hist));
 }
@@ -607,7 +751,7 @@ function goS(id,btn){
 }
 function renderHist(){
   document.getElementById('hsub').textContent=hist.length+' pesan tersimpan';
-  document.getElementById('hlist').innerHTML=!hist.length?'<div class="empty"><div class="e-ico">🌱</div><div class="e-txt">Belum ada riwayat.<br>Kembali ke beranda untuk mulai.</div></div>':hist.map(h=>`<div class="hitem"><div class="htime">${esc(h.time)}</div><div class="htxt">${esc(h.text)}</div><div class="hmeta"><span class="htag">${esc(h.mood)}</span><span class="htag">${esc(h.source)}</span></div></div>`).join('');
+  document.getElementById('hlist').innerHTML=!hist.length?'<div class="empty"><div class="e-ico">🌱</div><div class="e-txt">Belum ada riwayat.<br>Kembali ke beranda untuk mulai.</div></div>':hist.map((h,i)=>`<div class="hitem"><div class="htime">${esc(h.time)}</div><div class="htxt">${esc(h.text)}</div><div class="hmeta"><span class="htag">${esc(h.mood)}</span><span class="htag">${esc(h.source)}</span><button class="hshare" type="button" onclick="shareFromHist(${i})" aria-label="Bagikan"><span>📤</span><span>Bagikan</span></button></div></div>`).join('');
 }
 function renderProf(){
   document.getElementById('pava').textContent=user.name[0].toUpperCase();
@@ -617,10 +761,11 @@ function renderProf(){
   const d=Math.max(1,Math.ceil((Date.now()-new Date(user.joined))/86400000));
   document.getElementById('std').textContent=d;
   document.getElementById('sts').textContent=Math.min(d,msgs||1);
+  document.getElementById('ssh').textContent=shares;
 }
 function resetApp(){
   if(!confirm('Hapus semua data dan reset profil?'))return;
-  localStorage.clear();user=null;hist=[];msgs=0;mood=null;lastMotiv=null;
+  localStorage.clear();user=null;hist=[];msgs=0;shares=0;mood=null;lastMotiv=null;
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('ob').classList.add('active');
   document.getElementById('bnav').classList.remove('show');
