@@ -7,6 +7,7 @@ const server = http.createServer(async (req, res) => {
   // Set CORS headers - Allow GitHub Pages domain
   const origin = req.headers.origin || '';
   const allowedOrigins = [
+    'https://goodday.firmanahmad.id',
     'https://firmanahmad-max.github.io',
     'https://goodday-app-v3.railway.app',
     'http://localhost:3000',

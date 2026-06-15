@@ -8,8 +8,9 @@ Panduan untuk Claude (atau AI assistant lain) yang bekerja di repo ini.
 
 - **Frontend:** `docs/index.html` — single-file PWA (HTML + inline CSS + inline JS)
 - **Backend:** `server.js` + `api/motivasi.js` — minimal Node `http` server
-- **PWA assets:** `docs/manifest.json`, `docs/sw.js`
+- **PWA assets:** `docs/manifest.json`, `docs/sw.js`, `docs/splash.png`, `docs/CNAME`
 - **Storage:** browser `localStorage` only — tidak ada DB
+- **Production URL:** `https://goodday.firmanahmad.id` (custom domain via GitHub Pages CNAME). Apex `firmanahmad-max.github.io/goodday-app-V3` masih hidup sebagai fallback.
 
 ## Deployment Topology
 
