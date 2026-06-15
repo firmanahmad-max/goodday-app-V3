@@ -1,4 +1,4 @@
-const CACHE = 'goodday-v3.6';
+const CACHE = 'goodday-v3.7';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {

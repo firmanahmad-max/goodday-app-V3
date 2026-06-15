@@ -126,6 +126,13 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 .toast{position:fixed;left:50%;bottom:calc(80px + var(--safe-b));transform:translateX(-50%) translateY(20px);background:#1a1a2e;color:#fff;padding:10px 18px;border-radius:50px;font-size:.82rem;font-weight:500;box-shadow:0 8px 28px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:1000;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* Segmented control (Tema picker) */
+.seg-row{background:#f9f8f6;border-radius:12px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+.seg-lbl{font-size:.88rem;font-weight:500;color:#334455}
+.seg{display:flex;background:rgba(0,0,0,.06);border-radius:10px;padding:3px;gap:2px}
+.seg-opt{padding:6px 12px;border:none;background:none;border-radius:8px;font-size:.78rem;color:#556677;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;font-weight:500}
+.seg-opt.on{background:#fff;color:#1a1a2e;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
 /* NAV */
 .bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,.07);display:none;padding-bottom:var(--safe-b)}
 .bnav.show{display:flex;justify-content:space-around;align-items:center;padding-top:.55rem;padding-bottom:calc(.55rem + var(--safe-b))}
@@ -198,6 +205,71 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 .credits .cred-l{display:block;color:#334455;margin-bottom:.2rem}
 .credits .cred-l b{color:#1a1a2e}
 .credits .cred-l span{color:#8899aa;font-size:.82rem;margin-left:.3rem}
+
+/* ===== DARK MODE OVERRIDES ===== */
+body.dark{background:#0d1117}
+body.dark #main{background:#0d1117}
+body.dark .mcard{background:#0f1e30}
+body.dark .gbar{border-color:rgba(255,255,255,.07)}
+body.dark .gsub{color:#6a8296}
+body.dark .gname{color:#f0f4ff}
+body.dark .stitle{color:#7a8a9a}
+body.dark .mchip{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.09);color:#8fa8c0}
+body.dark .qcard{background:linear-gradient(135deg,rgba(201,169,110,.1),rgba(201,169,110,.04));border-color:rgba(201,169,110,.27)}
+body.dark .qbadge{color:#e8c98a;background:rgba(201,169,110,.12)}
+body.dark .arabic{color:#e8c98a}
+body.dark .trans{color:#8fa8c0}
+body.dark .src{color:#a8b890}
+body.dark .narr{background:rgba(255,255,255,.03)}
+body.dark .narr-t{color:#b0c4d8}
+body.dark .ldtxt{color:#7a8a9a}
+body.dark .btn-share{color:#e8c98a;border-color:rgba(201,169,110,.4)}
+body.dark .btn-share:hover{background:rgba(201,169,110,.1)}
+body.dark .btn-fav{background:rgba(255,255,255,.08);border-color:rgba(201,169,110,.35)}
+body.dark .btn-fav.on{background:#c9a96e;border-color:#c9a96e;color:#fff}
+body.dark #hist h2,body.dark #favs h2,body.dark #prof h2,body.dark #set h2{color:#e6edf3}
+body.dark #hist p,body.dark #favs p,body.dark #prof p,body.dark #set p{color:#7e8a98}
+body.dark .hitem{background:#1a2332;border-left-color:#c9a96e}
+body.dark .htxt{color:#cdd9e5}
+body.dark .htime{color:#e8c98a}
+body.dark .htag{background:rgba(201,169,110,.13);color:#e8c98a}
+body.dark .favar{color:#e8c98a}
+body.dark .favtr{color:#8fa8c0}
+body.dark .empty{color:#7e8a98}
+body.dark .pcard{background:linear-gradient(135deg,rgba(201,169,110,.1),rgba(201,169,110,.03));border-color:rgba(201,169,110,.2)}
+body.dark .pnm{color:#e6edf3}
+body.dark .psb{color:#9aab89}
+body.dark .stat{background:#1a2332}
+body.dark .stat-num{color:#e8c98a}
+body.dark .stat-lbl{color:#7e8a98}
+body.dark .toggle{background:#1a2332}
+body.dark .toggle-label{color:#cdd9e5}
+body.dark .toggle-switch{background:#3a4250}
+body.dark .srow{background:#1a2332;color:#cdd9e5}
+body.dark .srow:hover{background:#22324a}
+body.dark .srow .srow-arr{color:#556677}
+body.dark .credits{background:linear-gradient(135deg,rgba(201,169,110,.1),rgba(201,169,110,.03));border-color:rgba(201,169,110,.25)}
+body.dark .credits .cred-l{color:#cdd9e5}
+body.dark .credits .cred-l b{color:#fff}
+body.dark .credits .cred-l span{color:#7e8a98}
+body.dark .prose{color:#cdd9e5}
+body.dark .prose h3{color:#e6edf3}
+body.dark .prose strong{color:#e6edf3}
+body.dark .bnav{background:rgba(15,30,48,.92);border-top-color:rgba(255,255,255,.07)}
+body.dark .nbtn .txt{color:#7e8a98}
+body.dark .nbtn.on .txt{color:#fff}
+body.dark .btn-back{background:rgba(255,255,255,.06);color:#cdd9e5}
+body.dark .btn-back:hover{background:rgba(255,255,255,.1)}
+body.dark .subhead h2{color:#e6edf3}
+body.dark .seg-row{background:#1a2332}
+body.dark .seg-lbl{color:#cdd9e5}
+body.dark .seg{background:rgba(0,0,0,.3)}
+body.dark .seg-opt{color:#8fa8c0}
+body.dark .seg-opt.on{background:#2a3548;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+body.dark .hfav:hover{background:rgba(201,169,110,.18)}
+body.dark .hshare:hover{background:rgba(201,169,110,.18)}
+body.dark .btn-reset{background:rgba(200,80,80,.15);border-color:rgba(220,80,80,.4);color:#ff7a7a}
+body.dark .btn-reset:hover{background:rgba(200,80,80,.22)}
 </style>
 </head>
 <body>
@@ -311,6 +383,14 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 <!-- SETTINGS -->
 <div id="set" class="screen">
   <h2>Pengaturan</h2>
+  <div class="seg-row">
+    <span class="seg-lbl">Tema</span>
+    <div class="seg" role="group" aria-label="Pilih tema">
+      <button class="seg-opt" type="button" data-theme="auto" onclick="setTheme('auto')">Auto</button>
+      <button class="seg-opt" type="button" data-theme="light" onclick="setTheme('light')">Terang</button>
+      <button class="seg-opt" type="button" data-theme="dark" onclick="setTheme('dark')">Gelap</button>
+    </div>
+  </div>
   <label class="toggle">
     <input type="checkbox" class="toggle-input" id="tog-ar" checked>
     <div class="toggle-switch"></div>
@@ -411,6 +491,7 @@ let shares=0;
 let busy=false;
 let lastMotiv=null;
 let toastTid=null;
+let theme=localStorage.getItem('gd_theme')||'auto';
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
@@ -633,10 +714,30 @@ function bumpShareCount(){
   localStorage.setItem('gd_s',shares);
 }
 
+function applyTheme(){
+  let dark;
+  if(theme==='dark')dark=true;
+  else if(theme==='light')dark=false;
+  else{const s=slot();dark=s==='evening'||s==='fajr';}
+  document.body.classList.toggle('dark',dark);
+  const mc=document.getElementById('mc');
+  if(mc){dark?mc.classList.add('dk'):mc.classList.remove('dk');}
+  const tc=document.querySelector('meta[name="theme-color"]');
+  if(tc)tc.setAttribute('content',dark?'#0d1117':'#f5f2ee');
+  document.querySelectorAll('.seg-opt').forEach(b=>b.classList.toggle('on',b.dataset.theme===theme));
+}
+
+function setTheme(t){
+  theme=t;
+  localStorage.setItem('gd_theme',t);
+  applyTheme();
+}
+
 function slot(){const h=new Date().getHours();return h>=4&&h<7?'fajr':h>=7&&h<12?'morning':h>=12&&h<17?'noon':'evening'}
 
 window.addEventListener('load',()=>{
   buildStars();
+  applyTheme();
   if(user) initMain();
 });
 
@@ -663,13 +764,12 @@ function initMain(){
   document.getElementById('ob').classList.remove('active');
   document.getElementById('main').classList.add('active');
   document.getElementById('bnav').classList.add('show');
-  const s=slot(),inf=SLOTS[s],dk=s==='evening'||s==='fajr';
+  const s=slot(),inf=SLOTS[s];
   document.getElementById('tbg').className='t-bg '+s;
   document.getElementById('torb').className='t-orb '+s;
   document.getElementById('tico').textContent=inf.i;
   document.getElementById('tbadge').textContent=inf.l;
-  const mc=document.getElementById('mc');
-  dk?mc.classList.add('dk'):mc.classList.remove('dk');
+  applyTheme();
   document.getElementById('gsub').textContent=inf.g+',';
   document.getElementById('gname').textContent=user.name+' 👋';
   document.getElementById('ava').textContent=user.name[0].toUpperCase();
@@ -869,7 +969,8 @@ function renderProf(){
 }
 function resetApp(){
   if(!confirm('Hapus semua data dan reset profil?'))return;
-  localStorage.clear();user=null;hist=[];favs=[];msgs=0;shares=0;mood=null;lastMotiv=null;
+  localStorage.clear();user=null;hist=[];favs=[];msgs=0;shares=0;mood=null;lastMotiv=null;theme='auto';
+  applyTheme();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('ob').classList.add('active');
   document.getElementById('bnav').classList.remove('show');
