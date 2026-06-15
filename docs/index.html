@@ -206,6 +206,31 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 .credits .cred-l b{color:#1a1a2e}
 .credits .cred-l span{color:#8899aa;font-size:.82rem;margin-left:.3rem}
 
+/* ===== INSIGHT / STATS DASHBOARD ===== */
+.insight-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:#1a1a2e;margin:1.5rem 0 .8rem;font-weight:600}
+.insight-card{background:#f9f8f6;border-radius:14px;padding:1rem 1.1rem;margin-bottom:.8rem}
+.insight-h{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#7a8a9a;margin-bottom:.75rem}
+.bar-row{display:grid;grid-template-columns:96px 1fr 32px;align-items:center;gap:.55rem;margin-bottom:.45rem;font-size:.78rem}
+.bar-row:last-child{margin-bottom:0}
+.bar-lbl{color:#334455;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{background:rgba(201,169,110,.13);height:9px;border-radius:5px;overflow:hidden}
+.bar-fill{background:linear-gradient(90deg,#c9a96e,#e8c98a);height:100%;border-radius:5px;transition:width .5s ease}
+.bar-c{font-weight:600;color:#c9a96e;text-align:right;font-size:.78rem}
+.type-bar{display:flex;height:36px;border-radius:9px;overflow:hidden;margin-bottom:.55rem;background:#eee}
+.type-q,.type-h{color:#fff;font-size:.78rem;font-weight:600;display:flex;align-items:center;justify-content:center;transition:width .5s ease;min-width:0}
+.type-q{background:linear-gradient(135deg,#c9a96e,#e8c98a)}
+.type-h{background:linear-gradient(135deg,#7a5810,#a07a2b)}
+.type-legend{display:flex;gap:1.2rem;font-size:.76rem;color:#556677;flex-wrap:wrap}
+.dot-q,.dot-h{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.dot-q{background:#c9a96e}.dot-h{background:#7a5810}
+.slot-chart{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;align-items:end;height:128px;padding-top:.2rem}
+.slot-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.slot-bar{width:34px;background:linear-gradient(180deg,#e8c98a,#c9a96e);border-radius:7px 7px 0 0;min-height:4px;margin-bottom:.35rem;transition:height .5s ease}
+.slot-bar.zero{background:rgba(201,169,110,.18)}
+.slot-c{font-size:.78rem;font-weight:600;color:#c9a96e;line-height:1}
+.slot-l{font-size:.66rem;color:#8899aa;margin-top:.25rem;text-transform:uppercase;letter-spacing:.05em;font-weight:500}
+.insight-empty{font-size:.82rem;color:#8899aa;text-align:center;padding:.6rem 0}
+
 /* ===== DARK MODE OVERRIDES ===== */
 body.dark{background:#0d1117}
 body.dark #main{background:#0d1117}
@@ -270,6 +295,18 @@ body.dark .hfav:hover{background:rgba(201,169,110,.18)}
 body.dark .hshare:hover{background:rgba(201,169,110,.18)}
 body.dark .btn-reset{background:rgba(200,80,80,.15);border-color:rgba(220,80,80,.4);color:#ff7a7a}
 body.dark .btn-reset:hover{background:rgba(200,80,80,.22)}
+body.dark .insight-title{color:#e6edf3}
+body.dark .insight-card{background:#1a2332}
+body.dark .insight-h{color:#7e8a98}
+body.dark .bar-lbl{color:#cdd9e5}
+body.dark .bar-track{background:rgba(201,169,110,.18)}
+body.dark .bar-c{color:#e8c98a}
+body.dark .type-bar{background:#2a3548}
+body.dark .type-legend{color:#8fa8c0}
+body.dark .slot-c{color:#e8c98a}
+body.dark .slot-l{color:#7e8a98}
+body.dark .slot-bar.zero{background:rgba(201,169,110,.12)}
+body.dark .insight-empty{color:#7e8a98}
 </style>
 </head>
 <body>
@@ -377,6 +414,7 @@ body.dark .btn-reset:hover{background:rgba(200,80,80,.22)}
       <div class="stat-lbl">Dibagikan</div>
     </div>
   </div>
+  <div id="stats-insight"></div>
   <button class="btn-reset" onclick="resetApp()">🔄 Reset Data & Profil</button>
 </div>
 
@@ -480,6 +518,7 @@ body.dark .btn-reset:hover{background:rgba(200,80,80,.22)}
 // Configuration - SESUAIKAN DENGAN API_URL KAMU
 const API_URL = 'https://goodday-app-v3-production.up.railway.app/api/motivasi';
 const MOODS=[['😌','bersemangat'],['🥰','berbahagia'],['😊','bersyukur'],['😇','tenang'],['💪','optimis'],['😔','sedih'],['😰','cemas'],['😤','kesal'],['😢','kecewa'],['😴','lelah'],['😕','bingung'],['😨','takut'],['🤲','berharap'],['🥺','rindu'],['😶','hampa']];
+const MOOD_EMOJI=Object.fromEntries(MOODS.map(([e,l])=>[l,e]));
 const SLOTS={fajr:{i:'🌙',l:'Subuh / Dini Hari',g:'Selamat datang di awal hari'},morning:{i:'🌅',l:'Pagi',g:'Selamat pagi'},noon:{i:'☀️',l:'Siang',g:'Siang hari ini'},evening:{i:'🌆',l:'Malam',g:'Selamat malam'}};
 
 let user=null;
@@ -966,6 +1005,54 @@ function renderProf(){
   document.getElementById('std').textContent=d;
   document.getElementById('sts').textContent=Math.min(d,msgs||1);
   document.getElementById('ssh').textContent=shares;
+  renderStats();
+}
+
+function computeStats(){
+  const moodCounts={};
+  const typeCounts={quran:0,hadits:0};
+  const slotCounts={Subuh:0,Pagi:0,Siang:0,Malam:0};
+  for(const h of hist){
+    if(h.mood)moodCounts[h.mood]=(moodCounts[h.mood]||0)+1;
+    if(h.type==='quran')typeCounts.quran++;
+    else if(h.type==='hadits')typeCounts.hadits++;
+    const sl=(h.time||'').split(' · ')[0];
+    if(sl in slotCounts)slotCounts[sl]++;
+  }
+  return {moodCounts,typeCounts,slotCounts};
+}
+
+function renderStats(){
+  const wrap=document.getElementById('stats-insight');
+  if(!wrap)return;
+  if(!hist.length){
+    wrap.innerHTML='<h3 class="insight-title">Insight</h3><div class="insight-card"><div class="insight-empty">Belum ada data. Ambil motivasi dulu untuk melihat pola mood &amp; aktivitasmu di sini.</div></div>';
+    return;
+  }
+  const {moodCounts,typeCounts,slotCounts}=computeStats();
+  const moodEntries=Object.entries(moodCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxMood=Math.max(...moodEntries.map(e=>e[1]),1);
+  const moodHtml=moodEntries.length?moodEntries.map(([m,c])=>{
+    const pct=Math.round(c/maxMood*100);
+    const em=MOOD_EMOJI[m]||'';
+    return `<div class="bar-row"><span class="bar-lbl">${em} ${esc(m)}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="bar-c">${c}</span></div>`;
+  }).join(''):'<div class="insight-empty">Belum ada data mood</div>';
+  const total=typeCounts.quran+typeCounts.hadits;
+  let typeHtml;
+  if(!total){
+    typeHtml='<div class="insight-empty">Belum ada data sumber</div>';
+  }else{
+    const qPct=Math.round(typeCounts.quran/total*100);
+    const hPct=100-qPct;
+    typeHtml=`<div class="type-bar">${qPct?`<div class="type-q" style="width:${qPct}%">${qPct}%</div>`:''}${hPct?`<div class="type-h" style="width:${hPct}%">${hPct}%</div>`:''}</div><div class="type-legend"><span><i class="dot-q"></i>Al-Quran (${typeCounts.quran})</span><span><i class="dot-h"></i>Hadits (${typeCounts.hadits})</span></div>`;
+  }
+  const slotEntries=Object.entries(slotCounts);
+  const maxSlot=Math.max(...slotEntries.map(e=>e[1]),1);
+  const slotHtml=slotEntries.map(([s,c])=>{
+    const h=c?Math.max(8,Math.round(c/maxSlot*100)):0;
+    return `<div class="slot-col"><div class="slot-bar${c?'':' zero'}" style="height:${h||4}%"></div><div class="slot-c">${c}</div><div class="slot-l">${s}</div></div>`;
+  }).join('');
+  wrap.innerHTML=`<h3 class="insight-title">Insight</h3><div class="insight-card"><div class="insight-h">Mood paling sering</div>${moodHtml}</div><div class="insight-card"><div class="insight-h">Quran vs Hadits</div>${typeHtml}</div><div class="insight-card"><div class="insight-h">Aktivitas per waktu</div><div class="slot-chart">${slotHtml}</div></div>`;
 }
 function resetApp(){
   if(!confirm('Hapus semua data dan reset profil?'))return;
