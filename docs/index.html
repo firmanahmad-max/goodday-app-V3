@@ -231,6 +231,25 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 .slot-l{font-size:.66rem;color:#8899aa;margin-top:.25rem;text-transform:uppercase;letter-spacing:.05em;font-weight:500}
 .insight-empty{font-size:.82rem;color:#8899aa;text-align:center;padding:.6rem 0}
 
+/* ===== CALENDAR VIEW ===== */
+.view-toggle{display:flex;background:rgba(0,0,0,.06);border-radius:10px;padding:3px;gap:2px;margin-bottom:1.1rem}
+.view-toggle button{flex:1;padding:8px 12px;border:none;background:none;border-radius:8px;font-size:.82rem;font-weight:500;color:#556677;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.view-toggle button.on{background:#fff;color:#1a1a2e;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+.cal-nav{background:rgba(0,0,0,.05);border:none;width:38px;height:38px;border-radius:10px;font-size:1.2rem;cursor:pointer;color:#334455;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;transition:background .15s}
+.cal-nav:hover{background:rgba(0,0,0,.1)}
+.cal-label{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:#1a1a2e}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:1rem}
+.cal-dow{font-size:.66rem;font-weight:600;color:#8899aa;text-align:center;text-transform:uppercase;letter-spacing:.05em;padding:.3rem 0}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:9px;background:transparent;border:none;cursor:pointer;font-size:.85rem;color:#334455;position:relative;font-family:'DM Sans',sans-serif;transition:background .15s;padding:0}
+.cal-day:hover{background:rgba(201,169,110,.12)}
+.cal-day.empty{cursor:default;background:none;pointer-events:none}
+.cal-day.today{font-weight:700;color:#c9a96e;background:rgba(201,169,110,.08)}
+.cal-day.has-entry::after{content:'';position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#c9a96e}
+.cal-day.selected{background:linear-gradient(135deg,#c9a96e,#e8c98a);color:#1a0a2e;font-weight:600}
+.cal-day.selected.has-entry::after{background:#1a0a2e}
+.cal-summary{font-size:.82rem;color:#8899aa;text-align:center;margin-bottom:.8rem;padding:.5rem;background:rgba(201,169,110,.06);border-radius:10px}
+
 /* ===== DARK MODE OVERRIDES ===== */
 body.dark{background:#0d1117}
 body.dark #main{background:#0d1117}
@@ -307,6 +326,17 @@ body.dark .slot-c{color:#e8c98a}
 body.dark .slot-l{color:#7e8a98}
 body.dark .slot-bar.zero{background:rgba(201,169,110,.12)}
 body.dark .insight-empty{color:#7e8a98}
+body.dark .view-toggle{background:rgba(0,0,0,.3)}
+body.dark .view-toggle button{color:#8fa8c0}
+body.dark .view-toggle button.on{background:#2a3548;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+body.dark .cal-nav{background:rgba(255,255,255,.06);color:#cdd9e5}
+body.dark .cal-nav:hover{background:rgba(255,255,255,.12)}
+body.dark .cal-label{color:#e6edf3}
+body.dark .cal-dow{color:#7e8a98}
+body.dark .cal-day{color:#cdd9e5}
+body.dark .cal-day:hover{background:rgba(201,169,110,.18)}
+body.dark .cal-day.today{color:#e8c98a;background:rgba(201,169,110,.13)}
+body.dark .cal-summary{color:#8fa8c0;background:rgba(201,169,110,.1)}
 </style>
 </head>
 <body>
@@ -519,6 +549,27 @@ body.dark .insight-empty{color:#7e8a98}
 const API_URL = 'https://goodday-app-v3-production.up.railway.app/api/motivasi';
 const MOODS=[['😌','bersemangat'],['🥰','berbahagia'],['😊','bersyukur'],['😇','tenang'],['💪','optimis'],['😔','sedih'],['😰','cemas'],['😤','kesal'],['😢','kecewa'],['😴','lelah'],['😕','bingung'],['😨','takut'],['🤲','berharap'],['🥺','rindu'],['😶','hampa']];
 const MOOD_EMOJI=Object.fromEntries(MOODS.map(([e,l])=>[l,e]));
+const ID_MONTHS_SHORT=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const ID_MONTHS_FULL=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const ID_DOWS=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+
+function parseHistDate(h){
+  if(h&&h.savedAt){const d=new Date(h.savedAt);if(!isNaN(d))return d;}
+  const parts=(h&&h.time||'').split(' · ');
+  if(parts.length<2)return null;
+  const t=parts[1].split(' ');
+  if(t.length<3)return null;
+  const day=+t[0],month=ID_MONTHS_SHORT.indexOf(t[1]),year=+t[2];
+  if(!day||month<0||!year)return null;
+  return new Date(year,month,day);
+}
+
+function ymd(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const dd=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+dd;
+}
 const SLOTS={fajr:{i:'🌙',l:'Subuh / Dini Hari',g:'Selamat datang di awal hari'},morning:{i:'🌅',l:'Pagi',g:'Selamat pagi'},noon:{i:'☀️',l:'Siang',g:'Siang hari ini'},evening:{i:'🌆',l:'Malam',g:'Selamat malam'}};
 
 let user=null;
@@ -531,6 +582,9 @@ let busy=false;
 let lastMotiv=null;
 let toastTid=null;
 let theme=localStorage.getItem('gd_theme')||'auto';
+let histView=localStorage.getItem('gd_histview')||'list';
+let calCursor=new Date();calCursor.setDate(1);
+let calSelected=null;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
@@ -946,7 +1000,7 @@ function toggleFavHist(idx,btn){
 }
 function saveHist(d){
   const s=slot(),lbl={fajr:'Subuh',morning:'Pagi',noon:'Siang',evening:'Malam'};
-  hist.unshift({time:lbl[s]+' · '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}),text:d.narrative,mood,source:d.source,type:d.type,arabic:d.arabic||'',translation:d.translation||''});
+  hist.unshift({time:lbl[s]+' · '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}),text:d.narrative,mood,source:d.source,type:d.type,arabic:d.arabic||'',translation:d.translation||'',savedAt:new Date().toISOString()});
   if(hist.length>50)hist=hist.slice(0,50);
   localStorage.setItem('gd_h',JSON.stringify(hist));
 }
@@ -966,10 +1020,97 @@ function goS(id,btn){
 }
 function renderHist(){
   document.getElementById('hsub').textContent=hist.length+' pesan tersimpan';
-  document.getElementById('hlist').innerHTML=!hist.length?'<div class="empty"><div class="e-ico">🌱</div><div class="e-txt">Belum ada riwayat.<br>Kembali ke beranda untuk mulai.</div></div>':hist.map((h,i)=>{
-    const fav=isFav(h.source);
-    return `<div class="hitem"><div class="htime">${esc(h.time)}</div><div class="htxt">${esc(h.text)}</div><div class="hmeta"><span class="htag">${esc(h.mood)}</span><span class="htag">${esc(h.source)}</span><button class="hfav${fav?' on':''}" type="button" onclick="toggleFavHist(${i},this)" aria-label="Favorit" aria-pressed="${fav}">${fav?'❤':'♡'}</button><button class="hshare" type="button" onclick="shareFromHist(${i})" aria-label="Bagikan"><span>📤</span><span>Bagikan</span></button></div></div>`;
-  }).join('');
+  const toggleHtml=`<div class="view-toggle"><button type="button" class="${histView==='list'?'on':''}" onclick="setHistView('list')"><span>📃</span><span>Daftar</span></button><button type="button" class="${histView==='calendar'?'on':''}" onclick="setHistView('calendar')"><span>📅</span><span>Kalender</span></button></div>`;
+  let body;
+  if(!hist.length){
+    body='<div class="empty"><div class="e-ico">🌱</div><div class="e-txt">Belum ada riwayat.<br>Kembali ke beranda untuk mulai.</div></div>';
+  }else if(histView==='calendar'){
+    body=renderCalendar();
+  }else{
+    body=hist.map((h,i)=>renderHistItem(h,i)).join('');
+  }
+  document.getElementById('hlist').innerHTML=toggleHtml+body;
+}
+
+function renderHistItem(h,i){
+  const fav=isFav(h.source);
+  return `<div class="hitem"><div class="htime">${esc(h.time)}</div><div class="htxt">${esc(h.text)}</div><div class="hmeta"><span class="htag">${esc(h.mood)}</span><span class="htag">${esc(h.source)}</span><button class="hfav${fav?' on':''}" type="button" onclick="toggleFavHist(${i},this)" aria-label="Favorit" aria-pressed="${fav}">${fav?'❤':'♡'}</button><button class="hshare" type="button" onclick="shareFromHist(${i})" aria-label="Bagikan"><span>📤</span><span>Bagikan</span></button></div></div>`;
+}
+
+function setHistView(v){
+  histView=v;
+  localStorage.setItem('gd_histview',v);
+  if(v==='calendar'){
+    const today=new Date();
+    calCursor=new Date(today.getFullYear(),today.getMonth(),1);
+    calSelected=null;
+  }
+  renderHist();
+}
+
+function calPrev(){
+  calCursor.setMonth(calCursor.getMonth()-1);
+  calSelected=null;
+  renderHist();
+}
+
+function calNext(){
+  calCursor.setMonth(calCursor.getMonth()+1);
+  calSelected=null;
+  renderHist();
+}
+
+function selectDay(ds){
+  calSelected=(calSelected===ds)?null:ds;
+  renderHist();
+}
+
+function buildHistDateIndex(){
+  const idx={};
+  hist.forEach((h,i)=>{
+    const d=parseHistDate(h);
+    if(!d)return;
+    const k=ymd(d);
+    (idx[k]=idx[k]||[]).push(i);
+  });
+  return idx;
+}
+
+function renderCalendar(){
+  const idx=buildHistDateIndex();
+  const year=calCursor.getFullYear();
+  const month=calCursor.getMonth();
+  const monthLabel=ID_MONTHS_FULL[month];
+  const today=new Date();
+  const todayStr=ymd(today);
+  const firstDow=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  let cells=ID_DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<firstDow;i++)cells+='<div class="cal-day empty"></div>';
+  for(let day=1;day<=daysInMonth;day++){
+    const ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+    const has=idx[ds]&&idx[ds].length;
+    const cls=['cal-day'];
+    if(ds===todayStr)cls.push('today');
+    if(has)cls.push('has-entry');
+    if(ds===calSelected)cls.push('selected');
+    cells+=`<button type="button" class="${cls.join(' ')}" onclick="selectDay('${ds}')" aria-label="${day} ${monthLabel}${has?', ada motivasi':''}">${day}</button>`;
+  }
+  const monthEntries=Object.keys(idx).filter(k=>k.startsWith(year+'-'+String(month+1).padStart(2,'0'))).reduce((n,k)=>n+idx[k].length,0);
+  let detail;
+  if(calSelected){
+    const sel=idx[calSelected]||[];
+    if(sel.length){
+      const d=new Date(calSelected+'T00:00:00');
+      const lbl=d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+      detail=`<div class="cal-summary">${sel.length} motivasi di ${esc(lbl)}</div>`+sel.map(i=>renderHistItem(hist[i],i)).join('');
+    }else{
+      detail='<div class="cal-summary">Tidak ada motivasi di tanggal ini</div>';
+    }
+  }else{
+    detail=`<div class="cal-summary">${monthEntries} motivasi di ${monthLabel} ${year}</div>`;
+  }
+  return `<div class="cal-head"><button type="button" class="cal-nav" onclick="calPrev()" aria-label="Bulan sebelumnya">‹</button><div class="cal-label">${monthLabel} ${year}</div><button type="button" class="cal-nav" onclick="calNext()" aria-label="Bulan berikutnya">›</button></div><div class="cal-grid">${cells}</div>${detail}`;
 }
 function renderFavs(){
   document.getElementById('fsub').textContent=favs.length+' favorit tersimpan';
