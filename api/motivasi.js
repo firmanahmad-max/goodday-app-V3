@@ -10,11 +10,6 @@ function clip(value, fallback) {
 }
 
 export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
@@ -42,6 +37,20 @@ export default async function handler(req, res) {
     const profesi = clip(body.profesi, 'pekerja');
     const waktu = clip(body.waktu, 'hari ini');
 
+    // Coin flip biar Quran & Hadits muncul seimbang. Tanpa ini, model
+    // hampir selalu pilih Quran karena lebih familiar.
+    const forcedType = Math.random() < 0.5 ? 'quran' : 'hadits';
+    const sumberLabel = forcedType === 'quran' ? 'ayat Al-Quran' : 'Hadits shahih';
+
+    // Daftar source yang baru-baru ini sudah dikirim ke user — supaya model
+    // wajib pilih sumber berbeda. Dibatasi 8 entry biar prompt tetap pendek.
+    const recentSources = Array.isArray(body.recentSources)
+      ? body.recentSources.filter(s => typeof s === 'string' && s.trim()).slice(0, 8)
+      : [];
+    const avoidLine = recentSources.length
+      ? `\n\nPENTING: JANGAN gunakan sumber-sumber berikut karena baru saja diberikan: ${recentSources.join('; ')}. Pilih sumber yang berbeda.`
+      : '';
+
     const apiKey = process.env.SUMOPOD_API_KEY;
     if (!apiKey) {
       console.error('[GoodDay API] SUMOPOD_API_KEY tidak dikonfigurasi');
@@ -51,16 +60,22 @@ export default async function handler(req, res) {
 
     const prompt = `Kamu adalah asisten spiritual Islami yang bijak dan hangat. Berikan pesan motivasi harian untuk ${nama} yang berusia ${usia} tahun, berprofesi sebagai ${profesi}, sedang merasakan ${mood}, pada waktu ${waktu}.
 
-Pilih 1 ayat Al-Quran ATAU 1 Hadits shahih yang sangat relevan. Balas HANYA dengan JSON valid (tanpa markdown, tanpa code fence, tanpa kalimat pembuka). Skema:
+Pilih TEPAT 1 ${sumberLabel} yang sangat relevan dengan kondisi tersebut. ${forcedType === 'quran' ? 'WAJIB ayat Al-Quran, bukan hadits.' : 'WAJIB hadits shahih dari kitab hadits (Bukhari/Muslim/Tirmidzi/Abu Dawud/Nasai/Ibnu Majah/Ahmad), bukan ayat Al-Quran.'} Variasikan pilihan — jangan selalu pakai sumber yang paling populer.${avoidLine}
+
+Balas HANYA dengan JSON valid (tanpa markdown, tanpa code fence, tanpa kalimat pembuka). Skema:
 {
   "arabic": "teks arab asli",
   "translation": "terjemahan Indonesia yang natural",
-  "source": "sumber lengkap (QS Al-Baqarah: 286 atau HR Bukhari)",
-  "type": "quran" atau "hadits",
+  "source": "${forcedType === 'quran' ? 'sumber lengkap, format: QS Nama Surah: nomor ayat' : 'sumber lengkap, format: HR Bukhari no. xxxx (atau perawi lain)'}",
+  "type": "${forcedType}",
   "narrative": "pesan motivasi personal 2-3 kalimat menyebut nama ${nama}"
 }`;
 
-    console.log('[GoodDay API] Request from', nama, '| mood:', mood, '| waktu:', waktu);
+    // Prefill memaksa model mulai dari "type" yang sudah dipilih backend.
+    // Model jadi tidak bisa override jadi quran semua.
+    const prefill = `{"type":"${forcedType}",`;
+
+    console.log('[GoodDay API] Request from', nama, '| mood:', mood, '| waktu:', waktu, '| forced:', forcedType, '| avoid:', recentSources.length);
 
     // Upstream timeout — must fire before the frontend's 120s abort, so the user
     // gets a clean 504 instead of a generic "API tidak merespons" message.
@@ -80,12 +95,13 @@ Pilih 1 ayat Al-Quran ATAU 1 Hadits shahih yang sangat relevan. Balas HANYA deng
         body: JSON.stringify({
           model: 'claude-haiku-4-5',
           max_tokens: MAX_TOKENS,
+          // Higher temperature supaya variasi sumber lebih kaya antar request.
+          temperature: 1,
           messages: [
             { role: 'user', content: prompt },
-            // Prefill the assistant turn with `{` so the model is forced to
-            // start with a JSON object — eliminates "no JSON found" errors
-            // caused by chatty preambles or ```json fences.
-            { role: 'assistant', content: '{' }
+            // Prefill memaksa start dengan {"type":"<X>", — eliminates chatty
+            // preambles AND locks in the coin-flipped type.
+            { role: 'assistant', content: prefill }
           ]
         }),
         signal: upstreamController.signal
@@ -121,10 +137,10 @@ Pilih 1 ayat Al-Quran ATAU 1 Hadits shahih yang sangat relevan. Balas HANYA deng
       return;
     }
 
-    // Because we prefilled `{`, the model output continues from there.
+    // Because we prefilled `{"type":"X",`, the model output continues from there.
     // Reconstruct full JSON and locate the matching closing brace so any
     // trailing tokens (rare) don't break parsing.
-    const candidate = '{' + rawText;
+    const candidate = prefill + rawText;
     const jsonString = extractFirstJsonObject(candidate);
     if (!jsonString) {
       console.error('[GoodDay API] No balanced JSON found. Raw:', candidate.substring(0, 300));
@@ -161,7 +177,7 @@ Pilih 1 ayat Al-Quran ATAU 1 Hadits shahih yang sangat relevan. Balas HANYA deng
     }
 
     console.log('[GoodDay API] OK', nama, '| type:', parsed.type, '| source:', parsed.source, '| upstream:', durationMs, 'ms');
-    res.setHeader('Cache-Control', 's-maxage=300');
+    res.setHeader('Cache-Control', 'no-store');
     res.status(200).json(parsed);
 
   } catch (error) {
