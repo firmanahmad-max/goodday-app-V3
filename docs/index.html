@@ -108,6 +108,13 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 .btn-r{width:100%;padding:13px;background:linear-gradient(135deg,#c9a96e,#e8c98a);border:none;border-radius:14px;color:#1a0a2e;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,opacity .2s;box-shadow:0 4px 16px rgba(201,169,110,.3)}
 .btn-r:hover{transform:translateY(-1px);opacity:.95}.btn-r:active{transform:translateY(0)}.btn-r:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .errmsg{font-size:.76rem;color:#cc3333;text-align:center;margin-top:.45rem;padding:.45rem;background:rgba(200,0,0,.04);border-radius:8px;display:none}
+.btn-share{width:100%;margin-top:.75rem;padding:11px;background:transparent;border:1.5px solid rgba(201,169,110,.45);border-radius:13px;color:#7a5810;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .15s,border-color .15s}
+.btn-share:hover{background:rgba(201,169,110,.08);border-color:#c9a96e}
+.btn-share:active{transform:translateY(1px)}
+.dk .btn-share{color:#e8c98a;border-color:rgba(201,169,110,.4)}
+.dk .btn-share:hover{background:rgba(201,169,110,.1)}
+.toast{position:fixed;left:50%;bottom:calc(80px + var(--safe-b));transform:translateX(-50%) translateY(20px);background:#1a1a2e;color:#fff;padding:10px 18px;border-radius:50px;font-size:.82rem;font-weight:500;box-shadow:0 8px 28px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:1000;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* NAV */
 .bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,.07);display:none;padding-bottom:var(--safe-b)}
@@ -333,6 +340,9 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
   </div>
 </div>
 
+<!-- TOAST -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <!-- BOTTOM NAV -->
 <div class="bnav" id="bnav">
   <button class="nbtn on" onclick="goS('main', this)">
@@ -364,8 +374,52 @@ let mood=null;
 let hist=[];
 let msgs=0;
 let busy=false;
+let lastMotiv=null;
+let toastTid=null;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  if(!t)return;
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTid);
+  toastTid=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function buildShareText(d){
+  const lines=[];
+  if(d.arabic)lines.push(d.arabic);
+  lines.push(`"${d.translation}"`);
+  lines.push(`— ${d.source}`);
+  lines.push('');
+  lines.push(d.narrative);
+  lines.push('');
+  lines.push('🌙 GoodDay — Motivasi Islami Harian');
+  return lines.join('\n');
+}
+
+async function shareMotiv(){
+  if(!lastMotiv)return;
+  const text=buildShareText(lastMotiv);
+  if(navigator.share){
+    try{
+      await navigator.share({title:'GoodDay — Motivasi Harian',text});
+      return;
+    }catch(e){
+      if(e.name==='AbortError')return;
+      console.warn('[GoodDay] navigator.share failed, fallback to clipboard:',e);
+    }
+  }
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast('✓ Tersalin ke clipboard');
+  }catch(e){
+    console.error('[GoodDay] clipboard failed:',e);
+    showToast('Gagal menyalin, coba lagi');
+  }
+}
 
 // Load user data
 window.addEventListener('DOMContentLoaded',()=>{
@@ -527,9 +581,10 @@ async function getMotiv(){
 }
 
 function renderMotiv(d){
+  lastMotiv=d;
   const togAr=document.getElementById('tog-ar');
   const ar=togAr?togAr.checked:true;
-  document.getElementById('marea').innerHTML=`<div class="qcard"><div class="qbadge">${d.type==='quran'?'📖 Al-Quran':'📿 Hadits'}</div>${ar&&d.arabic?`<div class="arabic">${esc(d.arabic)}</div>`:''}  <div class="trans">"${esc(d.translation)}"</div><div class="src">— ${esc(d.source)}</div></div><div class="narr"><div class="narr-t">${esc(d.narrative)}</div></div>`;
+  document.getElementById('marea').innerHTML=`<div class="qcard"><div class="qbadge">${d.type==='quran'?'📖 Al-Quran':'📿 Hadits'}</div>${ar&&d.arabic?`<div class="arabic">${esc(d.arabic)}</div>`:''}  <div class="trans">"${esc(d.translation)}"</div><div class="src">— ${esc(d.source)}</div></div><div class="narr"><div class="narr-t">${esc(d.narrative)}</div></div><button class="btn-share" type="button" onclick="shareMotiv()" aria-label="Bagikan motivasi ini"><span>📤</span><span>Bagikan</span></button>`;
 }
 function saveHist(d){
   const s=slot(),lbl={fajr:'Subuh',morning:'Pagi',noon:'Siang',evening:'Malam'};
@@ -565,7 +620,7 @@ function renderProf(){
 }
 function resetApp(){
   if(!confirm('Hapus semua data dan reset profil?'))return;
-  localStorage.clear();user=null;hist=[];msgs=0;mood=null;
+  localStorage.clear();user=null;hist=[];msgs=0;mood=null;lastMotiv=null;
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('ob').classList.add('active');
   document.getElementById('bnav').classList.remove('show');
