@@ -257,6 +257,28 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 .cal-day.selected.has-entry::after{background:#1a0a2e}
 .cal-summary{font-size:.82rem;color:#8899aa;text-align:center;margin-bottom:.8rem;padding:.5rem;background:rgba(201,169,110,.06);border-radius:10px}
 
+/* ===== DUKUNGAN / DONATION ===== */
+.dukungan{margin-top:1.8rem;padding-top:1.5rem;border-top:1px solid rgba(0,0,0,.08)}
+.dukungan h3{font-family:'Playfair Display',serif;font-size:1.15rem;color:#1a1a2e;margin-bottom:.7rem;font-weight:600}
+.dukungan h4{font-size:.74rem;color:#7a5810;text-transform:uppercase;letter-spacing:.07em;margin:1.35rem 0 .8rem;font-weight:600}
+.dukungan p{font-size:.92rem;line-height:1.75;color:#334455;margin-bottom:.85rem}
+.dukungan p strong{color:#1a1a2e;font-weight:600}
+.donation-card{background:linear-gradient(135deg,rgba(201,169,110,.1),rgba(201,169,110,.03));border:1px solid rgba(201,169,110,.25);border-radius:14px;padding:1rem 1.1rem;margin-bottom:.75rem;position:relative}
+.don-bank{font-size:.7rem;font-weight:600;color:#7a5810;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem}
+.don-no{font-family:'DM Sans',sans-serif;font-size:1.1rem;font-weight:700;color:#1a1a2e;letter-spacing:.04em;margin-bottom:.2rem;word-break:break-all;padding-right:60px}
+.don-an{font-size:.82rem;color:#556677}
+.btn-copy{position:absolute;top:.85rem;right:.9rem;background:rgba(201,169,110,.18);border:1px solid rgba(201,169,110,.4);color:#7a5810;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;padding:5px 11px;border-radius:8px;cursor:pointer;transition:all .15s}
+.btn-copy:hover{background:rgba(201,169,110,.28)}
+.btn-copy:active{transform:scale(.96)}
+.don-confirm{background:rgba(0,0,0,.03);border-radius:10px;padding:.85rem 1rem;font-size:.82rem;line-height:1.7;color:#334455;margin-top:.9rem}
+.don-confirm a{color:#7a5810;font-weight:600;text-decoration:none}
+.don-confirm a:hover{text-decoration:underline}
+.other-apps{margin-top:1.4rem;padding:1rem 1.1rem;background:#f9f8f6;border-radius:14px}
+.ap-section{font-size:.7rem;font-weight:600;color:#7a8a9a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
+.ap-section+.ap-section{margin-top:.9rem}
+.ap-link{display:block;color:#7a5810;font-size:.88rem;font-weight:500;text-decoration:none;padding:.25rem 0;transition:color .15s}
+.ap-link:hover{color:#c9a96e}
+
 /* ===== DARK MODE OVERRIDES ===== */
 body.dark{background:#0d1117}
 body.dark #main{background:#0d1117}
@@ -344,6 +366,23 @@ body.dark .cal-day{color:#cdd9e5}
 body.dark .cal-day:hover{background:rgba(201,169,110,.18)}
 body.dark .cal-day.today{color:#e8c98a;background:rgba(201,169,110,.13)}
 body.dark .cal-summary{color:#8fa8c0;background:rgba(201,169,110,.1)}
+body.dark .dukungan{border-top-color:rgba(255,255,255,.08)}
+body.dark .dukungan h3{color:#e6edf3}
+body.dark .dukungan h4{color:#e8c98a}
+body.dark .dukungan p{color:#cdd9e5}
+body.dark .dukungan p strong{color:#fff}
+body.dark .donation-card{background:linear-gradient(135deg,rgba(201,169,110,.13),rgba(201,169,110,.04));border-color:rgba(201,169,110,.3)}
+body.dark .don-bank{color:#e8c98a}
+body.dark .don-no{color:#fff}
+body.dark .don-an{color:#8fa8c0}
+body.dark .btn-copy{background:rgba(201,169,110,.22);border-color:rgba(201,169,110,.45);color:#e8c98a}
+body.dark .btn-copy:hover{background:rgba(201,169,110,.32)}
+body.dark .don-confirm{background:rgba(255,255,255,.04);color:#cdd9e5}
+body.dark .don-confirm a{color:#e8c98a}
+body.dark .other-apps{background:#1a2332}
+body.dark .ap-section{color:#7e8a98}
+body.dark .ap-link{color:#e8c98a}
+body.dark .ap-link:hover{color:#fff}
 </style>
 </head>
 <body>
@@ -500,12 +539,44 @@ body.dark .cal-summary{color:#8fa8c0;background:rgba(201,169,110,.1)}
     <p>Melalui pendekatan tersebut, GoodDay diharapkan dapat menjadi teman refleksi harian yang menghadirkan ketenangan, motivasi, dan pengingat spiritual kapan saja dan di mana saja.</p>
     <p>Yang menjadi fondasi utama aplikasi ini adalah keyakinan bahwa sumber ketenangan terbaik berasal dari wahyu dan tuntunan yang terpercaya — sebuah <em>celestial resource</em> yang melampaui sekadar motivasi biasa.</p>
     <p>Ke depannya, GoodDay akan terus dikembangkan, baik dari sisi fitur, pengalaman pengguna, maupun stabilitas sistem, agar dapat memberikan manfaat yang lebih luas bagi siapa pun yang menggunakannya.</p>
-    <p>Jika Anda merasa aplikasi ini bermanfaat dan ingin mendukung proses pengembangannya, dukungan serta donasi dari para pengguna akan sangat berarti bagi keberlanjutan GoodDay.</p>
   </div>
+
+  <div class="dukungan">
+    <h3>🤲 Dukungan Pengguna</h3>
+    <p>Jika kamu merasa aplikasi ini bermanfaat dan ingin mendukung proses pengembangannya, <strong>dukungan serta donasi dari para pengguna akan sangat berarti</strong> bagi keberlanjutan GoodDay. Setiap kontribusi, sekecil apapun, membantu kami terus menghadirkan pengalaman spiritual yang lebih baik untuk umat.</p>
+    <p>Semoga setiap rupiah yang kamu sisihkan menjadi <strong>amal jariyah</strong> yang mengalirkan pahala selama aplikasi ini terus dimanfaatkan oleh sesama Muslim di mana pun mereka berada.</p>
+
+    <h4>💳 Salurkan Donasi Anda</h4>
+
+    <div class="donation-card">
+      <div class="don-bank">Bank BCA</div>
+      <div class="don-no">0271776984</div>
+      <div class="don-an">a.n. Muhammad Firmansyah</div>
+      <button class="btn-copy" type="button" onclick="copyDonation('0271776984','Nomor rekening BCA')">Salin</button>
+    </div>
+
+    <div class="donation-card">
+      <div class="don-bank">OVO</div>
+      <div class="don-no">085257001416</div>
+      <div class="don-an">a.n. Firman Ahmad</div>
+      <button class="btn-copy" type="button" onclick="copyDonation('085257001416','Nomor OVO')">Salin</button>
+    </div>
+
+    <div class="don-confirm">📌 <strong>Konfirmasi donasi:</strong> Setelah transfer, mohon kirim bukti ke WhatsApp <a href="https://wa.me/6285257001416" target="_blank" rel="noopener">0852-5700-1416</a> atau email <a href="mailto:firman20@yahoo.com">firman20@yahoo.com</a> beserta nama yang ingin dicantumkan sebagai donatur.</div>
+  </div>
+
   <div class="credits">
     <div class="cred-t">Tim Developer · v3.0</div>
     <span class="cred-l"><b>Firman Ahmad</b><span>@boysnocry</span></span>
     <span class="cred-l"><b>MS Hadianto</b><span>@mshadianto</span></span>
+  </div>
+
+  <div class="other-apps">
+    <div class="ap-section">Portofolio</div>
+    <a class="ap-link" href="https://firmanahmad.id" target="_blank" rel="noopener">firmanahmad.id</a>
+    <div class="ap-section">Aplikasi lain</div>
+    <a class="ap-link" href="https://haribaik.firmanahmad.id" target="_blank" rel="noopener">haribaik.firmanahmad.id</a>
+    <a class="ap-link" href="https://artaingat.firmanahmad.id" target="_blank" rel="noopener">artaingat.firmanahmad.id</a>
   </div>
 </div>
 
@@ -813,6 +884,16 @@ function toggleFav(payload){
 function bumpShareCount(){
   shares++;
   localStorage.setItem('gd_s',shares);
+}
+
+async function copyDonation(text,label){
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast('✓ '+label+' tersalin');
+  }catch(e){
+    console.error('[GoodDay] copy donation failed:',e);
+    showToast('Gagal menyalin');
+  }
 }
 
 function applyTheme(){
