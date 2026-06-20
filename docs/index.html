@@ -279,6 +279,18 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;overflow-x:hidden;backgro
 .ap-link{display:block;color:#7a5810;font-size:.88rem;font-weight:500;text-decoration:none;padding:.25rem 0;transition:color .15s}
 .ap-link:hover{color:#c9a96e}
 
+/* ===== DAFTAR DONATUR ===== */
+.donors{margin-top:1.6rem}
+.donors h4{font-family:'Playfair Display',serif;font-size:1.08rem;color:#1a1a2e;margin-bottom:.55rem;font-weight:600}
+.donors-intro{font-size:.88rem;line-height:1.75;color:#556677;margin-bottom:1rem;font-style:italic}
+.donor-list{display:flex;flex-direction:column;gap:.5rem}
+.donor-item{display:flex;align-items:center;gap:.85rem;background:linear-gradient(135deg,rgba(201,169,110,.08),rgba(201,169,110,.02));border:1px solid rgba(201,169,110,.2);border-radius:12px;padding:.7rem 1rem;transition:transform .15s,box-shadow .15s}
+.donor-item:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(201,169,110,.13)}
+.donor-no{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:#c9a96e;min-width:30px;letter-spacing:.02em}
+.donor-name{flex:1;font-size:.92rem;font-weight:600;color:#1a1a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.donor-date{font-size:.72rem;color:#8899aa;letter-spacing:.03em;white-space:nowrap}
+.donors-empty{font-size:.85rem;color:#8899aa;text-align:center;padding:.8rem;background:rgba(201,169,110,.05);border-radius:10px;font-style:italic}
+
 /* ===== DARK MODE OVERRIDES ===== */
 body.dark{background:#0d1117}
 body.dark #main{background:#0d1117}
@@ -383,6 +395,14 @@ body.dark .other-apps{background:#1a2332}
 body.dark .ap-section{color:#7e8a98}
 body.dark .ap-link{color:#e8c98a}
 body.dark .ap-link:hover{color:#fff}
+body.dark .donors h4{color:#e6edf3}
+body.dark .donors-intro{color:#8fa8c0}
+body.dark .donor-item{background:linear-gradient(135deg,rgba(201,169,110,.13),rgba(201,169,110,.04));border-color:rgba(201,169,110,.28)}
+body.dark .donor-item:hover{box-shadow:0 4px 18px rgba(201,169,110,.18)}
+body.dark .donor-no{color:#e8c98a}
+body.dark .donor-name{color:#fff}
+body.dark .donor-date{color:#7e8a98}
+body.dark .donors-empty{background:rgba(201,169,110,.08);color:#8fa8c0}
 </style>
 </head>
 <body>
@@ -565,6 +585,12 @@ body.dark .ap-link:hover{color:#fff}
     <div class="don-confirm">📌 <strong>Konfirmasi donasi:</strong> Setelah transfer, mohon kirim bukti ke WhatsApp <a href="https://wa.me/6285257001416" target="_blank" rel="noopener">0852-5700-1416</a> atau email <a href="mailto:firman20@yahoo.com">firman20@yahoo.com</a> beserta nama yang ingin dicantumkan sebagai donatur.</div>
   </div>
 
+  <div class="donors">
+    <h4>🌹 Para Sahabat Pendukung</h4>
+    <p class="donors-intro">Kepada setiap sahabat yang telah ikut menyirami kebaikan ini — terima kasih. Semoga setiap titipan menjadi pemberat amal jariyah di sisi-Nya, dan setiap nama yang tertulis di sini menjadi doa yang ikut mengiring perjalanan GoodDay.</p>
+    <div class="donor-list" id="donor-list"></div>
+  </div>
+
   <div class="credits">
     <div class="cred-t">Tim Developer · v3.0</div>
     <span class="cred-l"><b>Firman Ahmad</b><span>@boysnocry</span></span>
@@ -628,6 +654,18 @@ body.dark .ap-link:hover{color:#fff}
 const API_URL = 'https://goodday-app-v3-production.up.railway.app/api/motivasi';
 const MOODS=[['😌','bersemangat'],['🥰','berbahagia'],['😊','bersyukur'],['😇','tenang'],['💪','optimis'],['😔','sedih'],['😰','cemas'],['😤','kesal'],['😢','kecewa'],['😴','lelah'],['😕','bingung'],['😨','takut'],['🤲','berharap'],['🥺','rindu'],['😶','hampa']];
 const MOOD_EMOJI=Object.fromEntries(MOODS.map(([e,l])=>[l,e]));
+
+// ===== DAFTAR DONATUR =====
+// Cara tambah donatur baru: SISIPKAN entry baru di paling ATAS array ini
+// (newest first). Format wajib: { name: 'Nama lengkap', date: 'YYYY-MM-DD' }.
+// Optional: tambah field `note` (string pendek) kalau mau ada keterangan.
+// Setelah edit, commit & deploy — nomor #N di-generate otomatis berdasarkan
+// urutan kronologis (Hamba Allah selalu #01).
+const DONORS=[
+  // Contoh tambah donatur berikutnya:
+  // { name: 'Budi Santoso', date: '2026-07-15' },
+  { name: 'Hamba Allah', date: '2026-06-19' },
+];
 const ID_MONTHS_SHORT=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const ID_MONTHS_FULL=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const ID_DOWS=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
@@ -896,6 +934,26 @@ async function copyDonation(text,label){
   }
 }
 
+function formatDonorDate(s){
+  const d=new Date(s+'T00:00:00');
+  if(isNaN(d))return s;
+  return d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+}
+
+function renderDonors(){
+  const wrap=document.getElementById('donor-list');
+  if(!wrap)return;
+  if(!DONORS.length){
+    wrap.innerHTML='<div class="donors-empty">Jadilah yang pertama menebar kebaikan.</div>';
+    return;
+  }
+  const total=DONORS.length;
+  wrap.innerHTML=DONORS.map((d,i)=>{
+    const num=String(total-i).padStart(2,'0');
+    return `<div class="donor-item"><div class="donor-no">#${num}</div><div class="donor-name">${esc(d.name)}</div><div class="donor-date">${esc(formatDonorDate(d.date))}</div></div>`;
+  }).join('');
+}
+
 function applyTheme(){
   let dark;
   if(theme==='dark')dark=true;
@@ -920,6 +978,7 @@ function slot(){const h=new Date().getHours();return h>=4&&h<7?'fajr':h>=7&&h<12
 window.addEventListener('load',()=>{
   buildStars();
   applyTheme();
+  renderDonors();
   if(user) initMain();
   hideSplash();
 });
@@ -1115,6 +1174,7 @@ function goS(id,btn){
   if(id==='hist')renderHist();
   if(id==='favs')renderFavs();
   if(id==='prof')renderProf();
+  if(id==='about')renderDonors();
   window.scrollTo(0,0);
 }
 function renderHist(){
