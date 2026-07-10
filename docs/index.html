@@ -651,8 +651,8 @@ body.dark .donors-empty{background:rgba(201,169,110,.08);color:#8fa8c0}
 </div>
 
 <script>
-// Configuration - SESUAIKAN DENGAN API_URL KAMU
-const API_URL = 'https://goodday-app-v3-production.up.railway.app/api/motivasi';
+// Configuration — same-origin di VPS (Caddy: / → docs, /api → backend). Relatif = tanpa CORS.
+const API_URL = '/api/motivasi';
 const MOODS=[['😌','bersemangat'],['🥰','berbahagia'],['😊','bersyukur'],['😇','tenang'],['💪','optimis'],['😔','sedih'],['😰','cemas'],['😤','kesal'],['😢','kecewa'],['😴','lelah'],['😕','bingung'],['😨','takut'],['🤲','berharap'],['🥺','rindu'],['😶','hampa']];
 const MOOD_EMOJI=Object.fromEntries(MOODS.map(([e,l])=>[l,e]));
 
